@@ -15,6 +15,28 @@ def regiser(request):
     user = SignUpSerializer(data = data)
 
     if user.is_valid():
-        if not User.objects.filter(username=data['email']).exists:
+        if not User.objects.filter(username=data['email']).exists():
             user = User.objects.create(
+                    first_name = data['first_name'],
+                    last_name = data['last_name'],
+                    email = data['email'],
+                    username = data['email'],
+                    password = make_password(data['first_name']),
             )
+            return Response(
+                {
+                    'detail': 'Your account has been created',
+                },
+                status=status.HTTP_201_CREATED
+            )
+        else:
+            return Response(
+                {
+                    'detail': 'account already exisit',
+                },
+                status=status.HTTP_400_BAD_REQUEST
+                )
+    else:
+        return Response(
+                user.errors
+                )
