@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 
 from .models import Product
 from .serializers import PoductSerializer
@@ -23,4 +24,12 @@ def get_all_products(request):
 def get_by_id_product(request, pk):
     products = get_object_or_404(Product, id=pk)
     serializer = PoductSerializer(products, many=False)
+    return Response({'product': serializer.data})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def newProduct(request):
+    data = request.data
+    serializer = PoductSerializer(data=data, many=False)
+    products = get_object_or_404(Product, id=pk)
     return Response({'product': serializer.data})
