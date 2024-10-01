@@ -31,5 +31,9 @@ def get_by_id_product(request, pk):
 def newProduct(request):
     data = request.data
     serializer = PoductSerializer(data=data, many=False)
-    products = get_object_or_404(Product, id=pk)
-    return Response({'product': serializer.data})
+    if serializer.is_valid():
+        product = Product.objects.create(**data, user=request.user)
+        res = PoductSerializer(product, many=False)
+        return Response({'product': res})
+    else:
+        return Response({'product': serializer.errors})
