@@ -42,8 +42,9 @@ def newProduct(request):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def updateProduct(request, pk):
+    product = get_object_or_404(Product, id=pk)
+    
     data = request.data
-    product = get_by_id_product(request, pk)
     if product.user != request.user:
         return Response({'error': "you cant update"}, status= status.HTTP_403_FORBIDDEN)
     
