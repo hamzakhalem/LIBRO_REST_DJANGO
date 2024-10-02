@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 
 from .models import Product
 from .serializers import PoductSerializer
@@ -37,3 +38,23 @@ def newProduct(request):
         return Response({'product': res})
     else:
         return Response({'product': serializer.errors})
+    
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def updateProduct(request, pk):
+    data = request.data
+    product = get_by_id_product(request, pk)
+    if product.user != request.user:
+        return Response({'error': "you cant update"}, status= status.HTTP_403_FORBIDDEN)
+    
+    product.name = data['name']
+    product.description = data['description']
+    product.price = data['price']
+    product.brand = data['brand']
+    product.ratings = data['ratings']
+    product.stock = data['stock']
+    product.save()
+    serializer = PoductSerializer(product, many=False)
+    return Response({'product': serializer.data})
+
+
