@@ -43,7 +43,7 @@ def newProduct(request):
 @permission_classes([IsAuthenticated])
 def updateProduct(request, pk):
     product = get_object_or_404(Product, id=pk)
-    
+
     data = request.data
     if product.user != request.user:
         return Response({'error': "you cant update"}, status= status.HTTP_403_FORBIDDEN)
@@ -56,6 +56,7 @@ def updateProduct(request, pk):
     product.stock = data['stock']
     product.save()
     serializer = PoductSerializer(product, many=False)
+    
     return Response({'product': serializer.data})
 
 
