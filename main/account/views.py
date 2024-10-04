@@ -45,5 +45,11 @@ def regiser(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def current_user(request):
-    user = UserSerializer(request.user)
+    user = UserSerializer(request.user, many=False)
+    return Response(user.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def update_user(request):
+    user = UserSerializer(request.user, many=False)
     return Response(user.data)
