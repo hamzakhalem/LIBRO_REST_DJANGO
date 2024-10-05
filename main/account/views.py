@@ -23,7 +23,7 @@ def regiser(request):
                     last_name = data['last_name'],
                     email = data['email'],
                     username = data['email'],
-                    password = make_password(data['first_name']),
+                    password = make_password(data['password']),
             )
             return Response(
                 {
@@ -51,5 +51,16 @@ def current_user(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def update_user(request):
-    user = UserSerializer(request.user, many=False)
+    user = request.user
+    data = request.data
+    user.first_name = data['first_name'],
+    user.last_name = data['last_name'],
+    user.email = data['email'],
+    user.username = data['email'],
+
+    if(data['password'] != ''):
+        user.password = make_password(data['password'])
+
+    user.save
+    user = UserSerializer(user, many=False)
     return Response(user.data)
