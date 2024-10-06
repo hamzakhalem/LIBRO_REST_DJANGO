@@ -5,8 +5,8 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
-from .models import Product
-from .serializers import PoductSerializer
+from .models import Product, Review
+from .serializers import PoductSerializer, ReviewSerializer
 from .filters import ProductFilter
 # Create your views here.
 
@@ -69,8 +69,21 @@ def deleteProduct(request, pk):
         return Response({'error': "you cant update"}, status= status.HTTP_403_FORBIDDEN)
     
     product.delete()
-    serializer = PoductSerializer(product, many=False)
     
     return Response({'product': "deleted"}, status=status.HTTP_200_OK)
 
 
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def createReview(request, pk):
+    user = request.user
+    product = get_object_or_404(Product, id=pk)
+    data = request.data
+    review = product.reviews.filter(user=user)
+    if data['rating'] <0 or data['rating'] > 5:
+        return Response({'error': "Please select between 1 to 5 only "}, status=status.HTTP_400_BAD_REQUEST)
+    elif review.exists():
+        product = Review.objects.create(**data, user=request.user)
+    else:
+        product = Review.objects.create(**data, user=request.user)
