@@ -1,4 +1,6 @@
 from django.shortcuts import render, get_object_or_404
+from django.db.models import Avg
+
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
@@ -8,6 +10,7 @@ from rest_framework import status
 from .models import Product, Review
 from .serializers import PoductSerializer, ReviewSerializer
 from .filters import ProductFilter
+
 # Create your views here.
 
 @api_view(['GET'])
@@ -84,6 +87,25 @@ def createReview(request, pk):
     if data['rating'] <0 or data['rating'] > 5:
         return Response({'error': "Please select between 1 to 5 only "}, status=status.HTTP_400_BAD_REQUEST)
     elif review.exists():
-        product = Review.objects.create(**data, user=request.user)
+        new_review = {'rating': data['rating'],'comment': data['comment'] }
+        review.update(**new_review)
+
+        rating = product.reviwes.aggregate(avg_rating= Avg('rating'))
+        product.ratings = rating
+        product.save()
+
+        return Response({'details': 'Product reveiw updated'})
     else:
-        product = Review.objects.create(**data, user=request.user)
+        product = Review.objects.create(
+            user=user,
+            product=product,
+            rating=data['rating'],
+            comment=data['comment']
+            )
+        
+        
+        rating = product.reviwes.aggregate(avg_rating= Avg('rating'))
+        product.ratings = rating
+        product.save()
+
+        return Response({'details': 'Product reveiw crated'})
