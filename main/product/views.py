@@ -109,3 +109,22 @@ def createReview(request, pk):
         product.save()
 
         return Response({'details': 'Product reveiw crated'})
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def deleteReview(request, pk):
+    user = request.user
+    product = get_object_or_404(Product, id=pk)
+    
+    review = product.reviews.filter(user=user)
+    if review.exists():
+        review.delete()
+        
+        rating = product.reviwes.aggregate(avg_rating= Avg('rating'))
+        product.ratings = rating
+        product.save()
+
+        return Response({'details': 'Product reveiw crated'})
+    
+    else:
+        return Response({'details': 'Product reveiw not found'}, status=status.HTTP_400_BAD_REQUEST)
