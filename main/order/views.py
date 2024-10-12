@@ -7,6 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
 from .models import Order, OrderItem
+from product.models import Product
+from product.serializers import PoductSerializer
 from .serializers import  OrderItemSerializer, OrderSerializer
 # Create your views here.
 
@@ -16,11 +18,30 @@ def newOrder(request):
     user = request.user
     data = request.data
     order_items =  data['order_items']
-    serializer = OrderSerializer(data=data, many=False)
-    if serializer.is_valid():
-        order = Order.objects.create(**data, user=request.user)
-        res = OrderSerializer(order, many=False)
-        return Response({'order': res})
-    else:
-        return Response({'order': serializer.errors})
+    if order_items and len(order_items) == 0 :
+        return Response({'error': 'No error request'}, status=status.HTTP_400_BAD_REQUEST)
+    else: 
+        total_amount = sum(item['price'] * item['quantity'] for item in order_items)    
+        order = Order.objects.create(
+            user=user,
+            city = data['city'],
+            zip_code = data['zip_code'],
+            street = data['street'],
+            phone = data['phone'],
+            country = data['country'],
+            total_amount = total_amount,
+        )
+        for i in order_items:
+            product = Product.objects.get(id=i['product'])
+            item = OrderItem.objects.create(
+                product= product,
+                order = order,
+                name = product.name,
+                quantity = i['quantity'],
+                price = i['price']
+            )
+            product.stock -= item.quantity
+            product.save()
+        serializer = OrderSerializer(order,many=False)
+        return Response(serializer.data)
     
