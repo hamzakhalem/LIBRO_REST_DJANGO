@@ -12,6 +12,41 @@ from product.serializers import PoductSerializer
 from .serializers import  OrderItemSerializer, OrderSerializer
 # Create your views here.
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_orders(request):
+    orders = Order.objects.all()
+    serializer = OrderSerializer(orders,many=True)
+    return Response({'orders':serializer.data})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_order(request,pk):
+    order =get_object_or_404(Order, id=pk)
+
+    serializer = OrderSerializer(order,many=False)
+    return Response({'order':serializer.data})
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated,IsAdminUser])
+def process_order(request,pk):
+    order =get_object_or_404(Order, id=pk)
+    order.status = request.data['status']
+    order.save()
+     
+    serializer = OrderSerializer(order,many=False)
+    return Response({'order':serializer.data})
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_order(request,pk):
+    order =get_object_or_404(Order, id=pk) 
+    order.delete()
+      
+    return Response({'details': "order is deleted"})
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def newOrder(request):
